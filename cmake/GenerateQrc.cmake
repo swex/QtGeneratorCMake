@@ -34,6 +34,8 @@ function(qt_generate_qrc VAR)
   # Create correct filename
   set(OUT_FILENAME ${ARGGEN_SOURCE_DIR}/${ARGGEN_NAME})
   get_filename_component(OUT_FILENAME_ABS ${OUT_FILENAME} ABSOLUTE)
+  get_filename_component(ARGGEN_SOURCE_DIR_ABS ${ARGGEN_SOURCE_DIR} ABSOLUTE)
+
   # Set output variable
   set(${VAR} ${OUT_FILENAME_ABS} PARENT_SCOPE)
 
@@ -43,7 +45,11 @@ function(qt_generate_qrc VAR)
 
   list(TRANSFORM ARGGEN_GLOB_EXPRESSION PREPEND "${ARGGEN_SOURCE_DIR}/")
 
-  file(GLOB RES_FILES ${ARGGEN_GLOB_EXPRESSION})
+  file(GLOB_RECURSE RES_FILES
+  RELATIVE ${ARGGEN_SOURCE_DIR_ABS}
+  LIST_DIRECTORIES false
+  ${ARGGEN_GLOB_EXPRESSION}
+  )
 
   file(WRITE ${OUT_FILENAME_ABS}
     "<!-- File auto generated with CMake qt_generate_qrc. Everything written here will be lost. -->\n"
@@ -53,9 +59,10 @@ function(qt_generate_qrc VAR)
   foreach(RES_FILE ${RES_FILES})
     get_filename_component(FILENAME ${RES_FILE} NAME)
     get_filename_component(FILENAME_EXT ${RES_FILE} LAST_EXT)
+    get_filename_component(FILENAME_DIR ${RES_FILE} DIRECTORY)
 
     if(NOT FILENAME_EXT OR NOT ${FILENAME_EXT} STREQUAL ".qrc")
-      file(APPEND ${OUT_FILENAME_ABS} "    <file>${FILENAME}</file>\n")
+      file(APPEND ${OUT_FILENAME_ABS} "    <file>${FILENAME_DIR}/${FILENAME}</file>\n")
       if(ARGGEN_VERBOSE)
         message(STATUS "Add ${FILENAME} in ${ARGGEN_NAME}")
       endif()
